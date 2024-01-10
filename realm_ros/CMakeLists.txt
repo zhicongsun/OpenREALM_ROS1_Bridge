@@ -42,7 +42,7 @@ find_package(catkin REQUIRED COMPONENTS
         roslib
         pcl_ros
         geodesy
-        cv_bridge
+        cv_bridge_cv331 #更改默认的cv_bridge版本
         tf
         std_msgs
         nav_msgs
@@ -50,7 +50,7 @@ find_package(catkin REQUIRED COMPONENTS
         geographic_msgs
         realm_msgs
 )
-
+find_package(Boost COMPONENTS thread filesystem date_time system REQUIRED)#2.2.2
 # Fix to avoid OpenCV package confusion with ROS melodic
 find_package(OpenCV 3.3.1 EXACT QUIET)
 if (NOT OpenCV_FOUND)
@@ -71,7 +71,8 @@ find_package(OpenMP REQUIRED)
 #find_package(ORB_SLAM2 REQUIRED)
 #find_package(ORB_SLAM3 REQUIRED)
 #find_package(ov2slam REQUIRED)
-
+find_package(fbow REQUIRED)#2.2.2
+find_package(CGAL REQUIRED) #2.2.2
 find_package(VTK REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -106,8 +107,8 @@ catkin_package(
 ################################################################################
 # Build
 ################################################################################
-
-
+set(CMAKE_MODULE_PATH "/usr/lib/x86_64-linux-gnu/cmake")#2.2.2
+add_library(FLANN::FLANN INTERFACE IMPORTED)#2.2.2
 add_library(${PROJECT_NAME} SHARED
         src/realm_ros_lib/grabber_ros_node.cpp
         src/realm_ros_lib/grabber_exiv2_node.cpp
@@ -120,11 +121,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${catkin_INCLUDE_DIRS}
 )
 
+link_directories(/usr/lib/x86_64-linux-gnu) # 解决pthread错误
 target_link_libraries(${PROJECT_NAME} PUBLIC
         ${catkin_LIBRARIES}
         ${cmake_modules_LIBRARIES}
         ${OpenCV_LIBRARIES}
+        ${Boost_FILESYSTEM_LIBRARIES}
+        ${Boost_SYSTEM_LIBRARIES}
 	realm_stages
+    libpthread.so # 解决pthread错误
 )
 
 add_dependencies(${PROJECT_NAME}

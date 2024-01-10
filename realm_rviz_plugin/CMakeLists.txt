@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(realm_rviz_plugin)
 
-find_package(catkin REQUIRED COMPONENTS rviz cv_bridge geographic_msgs geodesy realm_msgs)
+find_package(catkin REQUIRED COMPONENTS rviz cv_bridge_cv331 geographic_msgs geodesy realm_msgs)#cv_bridge_cv331 added
 find_package(OpenCV 3 QUIET)
 if (NOT OpenCV_FOUND)
 	find_package(OpenCV 4 REQUIRED)
