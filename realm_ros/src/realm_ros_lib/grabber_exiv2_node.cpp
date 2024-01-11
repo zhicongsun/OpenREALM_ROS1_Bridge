@@ -23,14 +23,14 @@
 using namespace realm;
 
 Exiv2GrabberNode::Exiv2GrabberNode()
-: _do_set_all_keyframes(false),
+: _do_set_all_keyframes(false), //默认值为false
   _use_apriori_pose(false),
   _use_apriori_georeference(false),
   _use_apriori_surface_pts(false),
   _fps(0.0),
   _id_curr_file(0),
   _cam(nullptr)
-{
+{//构造函数，上面这些用于初始化参数列表，括号里为默认值
   readParams();
   setPaths();
 
@@ -75,30 +75,33 @@ Exiv2GrabberNode::Exiv2GrabberNode()
           << "\n\tp2 = " << _cam->p2());
 
   // ROS related inits
-  _topic_prefix = "/realm/" + _id_node;
+  _topic_prefix = "/realm/" + _id_node;//topic名字为/realm/alexa/input 或者img
   _pub_frame = _nh.advertise<realm_msgs::Frame>(_topic_prefix + "/input", 5);
   _pub_image = _nh.advertise<sensor_msgs::Image>(_topic_prefix + "/img", 5);
 
-  // Start grabbing images
+  // Start grabbing images 读取数据集的图像列表
   _file_list = getFileList(_path_grab);
+  ROS_INFO_STREAM("path " << _path_grab);
+  ROS_INFO_STREAM("path " << _file_list[0]);
+  ROS_INFO_STREAM("_file_list " << _file_list.size());
 
-  // Check if the exif tags in the config exist
+  // Check if the exif tags in the config exist 检查exif tag
   ROS_INFO("Scanning input image for provided meta tags...");
-  std::map<std::string, bool> tag_existence = _exiv2_reader.probeImage(_file_list[0]);
+  std::map<std::string, bool> tag_existence = _exiv2_reader.probeImage(_file_list[0]);//读取第一张图片
   for (const auto &tag : tag_existence)
   {
     if (tag.second)
-      ROS_INFO("[FOUND]\t\t'%s'", tag.first.c_str());
+      ROS_INFO("[FOUND]\t\t'%s'", tag.first.c_str());//输出图片包含的元素
     else
       ROS_WARN("[NOT FOUND]\t'%s'", tag.first.c_str());
   }
 }
 
-void Exiv2GrabberNode::readParams()
-{
+void Exiv2GrabberNode::readParams() 
+{//获取参数服务器的param
   ros::NodeHandle param_nh("~");
 
-  param_nh.param("config/id", _id_node, std::string("uninitialised"));
+  param_nh.param("config/id", _id_node, std::string("uninitialised"));//找不到就给默认值
   param_nh.param("config/input", _path_grab, std::string("uninitialised"));
   param_nh.param("config/rate", _fps, 0.0);
   param_nh.param("config/profile", _profile, std::string("uninitialised"));
@@ -120,8 +123,8 @@ void Exiv2GrabberNode::readParams()
     throw(std::invalid_argument("Error: Working directory does not exist!"));
 }
 
-void Exiv2GrabberNode::setPaths()
-{
+void Exiv2GrabberNode::setPaths() 
+{//获取相机矫正文件
   if (_path_working_directory == "uninitialised")
     _path_working_directory = ros::package::getPath("realm_ros");
   _path_profile = _path_working_directory + "/profiles/" + _profile;
@@ -137,11 +140,11 @@ void Exiv2GrabberNode::setPaths()
 void Exiv2GrabberNode::spin()
 {
   ros::Rate rate(_fps);
-  if (_id_curr_file < _file_list.size())
+  if (_id_curr_file < _file_list.size())//判断数据集是否还有图片
   {
     ROS_INFO_STREAM("Image #" << _id_curr_file << ", image Path: " << _file_list[_id_curr_file]);
     Frame::Ptr frame = _exiv2_reader.loadFrameFromExiv2(_id_node, _cam, _file_list[_id_curr_file]);
-
+    ROS_INFO_STREAM("6666666666666666666666666:");
     // External pose can be provided
     if (_use_apriori_pose)
     {
@@ -166,7 +169,7 @@ void Exiv2GrabberNode::spin()
       //frame->setSparseCloud(_surface_pts, false);
     }
 
-    pubFrame(frame);
+    pubFrame(frame);//发布frame and image
     _id_curr_file++;
   }
 
@@ -182,7 +185,7 @@ void Exiv2GrabberNode::spin()
 }
 
 void Exiv2GrabberNode::pubFrame(const Frame::Ptr &frame)
-{
+{//topic发布函数
   // Create message header
   std_msgs::Header header;
   header.stamp = ros::Time::now();
@@ -212,7 +215,14 @@ std::vector<std::string> Exiv2GrabberNode::getFileList(const std::string& path)
     for (boost::filesystem::recursive_directory_iterator it(apk_path); it != end; ++it)
     {
       const boost::filesystem::path cp = (*it);
-      file_names.push_back(cp.string());
+      std::string path_str = cp.string();
+      if (path_str.find("._") == std::string::npos)  // 检查路径字符串是否包含 "._"
+      {
+        file_names.push_back(path_str);
+      }
+      ROS_INFO_STREAM("filename:" << path_str);
+
+      // file_names.push_back(cp.string());
     }
   }
   std::sort(file_names.begin(), file_names.end());
