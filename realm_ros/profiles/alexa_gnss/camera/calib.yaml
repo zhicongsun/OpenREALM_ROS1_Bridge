@@ -5,19 +5,19 @@
 # Type of the camera model
 type: pinhole
 # Frames per second
-fps: 10.0
+fps: 0.5
 # Image size
-width: 1228
-height: 1026
+width: 4864
+height: 3648
 # Principal point
-cx: 610.323586
-cy: 516.917327
+cx: 2427.4317
+cy: 1798.4901
 # Focal length
-fx: 1209.065736
-fy: 1210.661758
+fx: 3723.4111249
+fy: 3732.197
 # Distortion
-k1: -0.198806
-k2: 0.122544
-p1: -0.000221
-p2: -0.000877
+k1: -0.007058555
+k2: 0.011956376918234
+p1: 0.0
+p2: 0.0
 k3: 0.0
